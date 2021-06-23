@@ -25,6 +25,9 @@ if model_method == "a":
 else:
     sir_vector = [float(input("S = ")), float(input("I = ")), float(input("R = "))]
 
+if population != sir_vector[0] + sir_vector[1] + sir_vector[2]:
+    print("Sum of SIR and N are not the same, graph may be inaccurate because of this")    
+    
 # check for possibility of epidemic
 if beta / gamma < 1 or sir_vector[0] * (beta / gamma) < population:
     print("No epidemic can occur, take graphical results with a grain of salt")
