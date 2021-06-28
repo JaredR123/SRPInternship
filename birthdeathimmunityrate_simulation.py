@@ -29,7 +29,7 @@ if model_method == "a":
 else:
     sirn_vector = [float(input_lines[8]), float(input_lines[9]), float(input_lines[10]), initial_population]
 
-# Check for possibility of epidemic (FIX FIX FIX FIX FIX)
+# Check for possibility of epidemic
 if beta / gamma < 1 or sirn_vector[0] * (beta / gamma) < initial_population:
     print("No epidemic can occur, take graphical results with a grain of salt")
 
