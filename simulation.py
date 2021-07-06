@@ -239,8 +239,10 @@ sheet1.write(0, 2, "% of people")
 sheet1.write(1, 2, final_S/final_N * 100)
 sheet1.write(2, 2, final_I/final_N * 100)
 sheet1.write(3, 2, final_R/final_N * 100)
-sheet1.write(5, 0, "Growth rate")
-sheet1.write(5, 1, n_prime(final_I, final_Y, final_O, final_N)/final_N)
+sheet1.write(5, 0, "Initial Growth Rate")
+sheet1.write(5, 1, n_prime(i_data[0], y_data[0], o_data[0], n_data[0]) / n_data[0])
+sheet1.write(6, 0, "Final growth rate")
+sheet1.write(6, 1, n_prime(final_I, final_Y, final_O, final_N) / final_N)
 
 # Saves the workbook
 book.save("SIR_spreadsheet.xls")
