@@ -167,6 +167,9 @@ plt.ylabel('SIR Populations')
 ax.set_xlim([0, t[-1]])
 ax.set_ylim([0, max(n_data)])
 
+# Save plot
+plt.savefig("sir_values.png")
+
 # Getting the SIR percentage values
 s_percent = s_data / n_data
 i_percent = i_data / n_data
@@ -189,6 +192,9 @@ plt.ylabel('SIR Percentages')
 percent_sir.set_xlim([0, t[-1]])
 percent_sir.set_ylim([0, 1])
 
+# Save plot
+plt.savefig("sir_percentage.png")
+
 # Getting the age percentage values
 y_percent = y_data / n_data
 o_percent = o_data / n_data
@@ -209,7 +215,10 @@ plt.ylabel('Age Percentages')
 percent_age.set_xlim([0, t[-1]])
 percent_age.set_ylim([0, 1])
 
-# Display the plot
+# Save plot
+plt.savefig("age_percentage.png")
+
+# Display all graphs
 plt.show()
 
 # Initialize an excel workbook
