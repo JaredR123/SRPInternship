@@ -25,114 +25,115 @@ death_infection_old_step = float(input_lines[14])
 young_to_old_step = float(input_lines[15])
 iteration_max = int(input_lines[16])
 iteration_step = float(input_lines[17])
+population_step = 0
 iteration = 0
 initial_population = 1
 population = initial_population
-save_type = '.pdf'
-
-""" This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
-If this number is too low to start an epidemic, but an epidemic is possible, the highest possible I that will generate
-an epidemic will be used. 0.001 was determined after testing with multiple graphs to ensure that no trends are missed,
-while at the same time not leaving too long where the graph is just 3 straight lines."""
-if model_method == "a\n":
-    min_infected = 0.001 * initial_population
-    if min_infected >= (initial_population * (beta / gamma - 1)) / (beta / gamma):  # Maximum I for an epidemic
-        min_infected = (initial_population * (beta / gamma - 1)) / (beta / gamma)
-    # Starting vector for SIR
-    sirn_vector = [initial_population - min_infected, min_infected, 0, initial_population,
-                   young_to_old / (young_to_old + 1) * initial_population,
-                   1 / (young_to_old + 1) * initial_population]
-
-else:
-    sirn_vector = [float(input_lines[10]), float(input_lines[11]), float(input_lines[12]), initial_population]
-
-# Check for possibility of endemic equilibrium
-# From Mena-Lorcat, J., & Hethcote, H. (1992). Dynamic models of infectious diseases as regulators of population sizes.
-# Journal of Mathematical Biology, 30(7).
-"""r = birth_rate - death_rate
-sigma = beta / (gamma + death_infection + death_rate)
-if beta / (gamma + death_infection + birth_rate) < 1 or \
-        ((r * sigma) / (death_infection * (sigma - 1))) * (1 + (gamma / (theta + death_rate))) < 1:
-    print("Disease or population dies out, so no endemic equilibrium; " +
-          "take results with a grain of salt")"""
-
-
-# Death rate for young individuals
-def death_rate_young(young, old):
-    return 0.1
-
-
-# Defines the ODEs for the SIR and age groups
-def s_prime(susceptible, infected, recovered, young, old, population):
-    return -beta * susceptible * infected / population + theta * recovered + birth_rate * young - \
-           death_rate_young(young, old) * (young / population) * susceptible - \
-           death_rate_old * (old / population) * susceptible
-
-
-def i_prime(susceptible, infected, young, old, population):
-    return beta * susceptible * infected / population - gamma * infected - \
-           death_rate_young(young, old) * (young / population) * infected - \
-           death_rate_old * (old / population) * infected - \
-           death_infection_young * (young / population) * infected - \
-           death_infection_old * (old / population) * infected
-
-
-def r_prime(infected, recovered, young, old, population):
-    return gamma * infected - theta * recovered - \
-           death_rate_young(young, old) * (young / population) * recovered - \
-           death_rate_old * (old / population) * recovered
-
-
-def n_prime(infected, young, old, population):
-    return birth_rate * young - death_rate_young(young, old) * young - \
-           death_rate_old * old - death_infection_young * (young / population) * infected - \
-           death_infection_old * (old / population) * infected
-
-
-def y_prime(infected, young, old, population):
-    return birth_rate * young - death_rate_young(young, old) * young - \
-           death_infection_young * (young / population) * infected - \
-           aging_rate * young
-
-
-def o_prime(infected, young, old, population):
-    return aging_rate * young - death_rate_old * old - \
-           death_infection_old * (old / population) * infected
-
-
-def sir_model(t, y):
-    # Assigning SIR based on a vector
-    susceptible = y[0]
-    infected = y[1]
-    recovered = y[2]
-    population = y[3]
-    young = y[4]
-    old = y[5]
-
-    # ODEs for SIR model
-    dSdt = s_prime(susceptible, infected, recovered, young, old, population)
-    dIdt = i_prime(susceptible, infected, young, old, population)
-    dRdt = r_prime(infected, recovered, young, old, population)
-    dNdt = n_prime(infected, young, old, population)
-    dYdt = y_prime(infected, young, old, population)
-    dOdt = o_prime(infected, young, old, population)
-
-    return [dSdt, dIdt, dRdt, dNdt, dYdt, dOdt]
-
-
-# Stops the simulation when the sum of the change in percentage of SIR groups is close to 0
-def event(t, y):
-    # 0.001 is added to the compartments to avoid a ZeroDivisionError
-    dSNdt_SN = (s_prime(y[0], y[1], y[2], y[4], y[5], y[3]) * y[3] -
-                n_prime(y[1], y[4], y[5], y[3]) * y[0]) / ((y[0] + 0.001) * y[3])
-    dINdt_IN = (i_prime(y[0], y[1], y[4], y[5], y[3]) * y[3] -
-                n_prime(y[1], y[4], y[5], y[3]) * y[1]) / ((y[1] + 0.001) * y[3])
-    dRNdt_RN = (r_prime(y[1], y[2], y[4], y[5], y[3]) * y[3] -
-                n_prime(y[1], y[4], y[5], y[3]) * y[2]) / ((y[2] + 0.001) * y[3])
-    return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.01
-
+save_type = '.jpg'
 
 def the_magic(filename):
+    """ This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
+    If this number is too low to start an epidemic, but an epidemic is possible, the highest possible I that will generate
+    an epidemic will be used. 0.001 was determined after testing with multiple graphs to ensure that no trends are missed,
+    while at the same time not leaving too long where the graph is just 3 straight lines."""
+    initial_population = population
+    if model_method == "a\n":
+        min_infected = 0.001 * initial_population
+        if min_infected >= (initial_population * (beta / gamma - 1)) / (beta / gamma):  # Maximum I for an epidemic
+            min_infected = (initial_population * (beta / gamma - 1)) / (beta / gamma)
+        # Starting vector for SIR
+        sirn_vector = [initial_population - min_infected, min_infected, 0, initial_population,
+                       young_to_old / (young_to_old + 1) * initial_population,
+                       1 / (young_to_old + 1) * initial_population]
+
+    else:
+        sirn_vector = [float(input_lines[10]), float(input_lines[11]), float(input_lines[12]), initial_population]
+
+    # Check for possibility of endemic equilibrium
+    # From Mena-Lorcat, J., & Hethcote, H. (1992). Dynamic models of infectious diseases as regulators of population sizes.
+    # Journal of Mathematical Biology, 30(7).
+    """r = birth_rate - death_rate
+    sigma = beta / (gamma + death_infection + death_rate)
+    if beta / (gamma + death_infection + birth_rate) < 1 or \
+            ((r * sigma) / (death_infection * (sigma - 1))) * (1 + (gamma / (theta + death_rate))) < 1:
+        print("Disease or population dies out, so no endemic equilibrium; " +
+              "take results with a grain of salt")"""
+
+
+    # Death rate for young individuals
+    def death_rate_young(young, old):
+        return 0.1
+
+
+    # Defines the ODEs for the SIR and age groups
+    def s_prime(susceptible, infected, recovered, young, old, population):
+        return -beta * susceptible * infected / population + theta * recovered + birth_rate * young - \
+               death_rate_young(young, old) * (young / population) * susceptible - \
+               death_rate_old * (old / population) * susceptible
+
+
+    def i_prime(susceptible, infected, young, old, population):
+        return beta * susceptible * infected / population - gamma * infected - \
+               death_rate_young(young, old) * (young / population) * infected - \
+               death_rate_old * (old / population) * infected - \
+               death_infection_young * (young / population) * infected - \
+               death_infection_old * (old / population) * infected
+
+
+    def r_prime(infected, recovered, young, old, population):
+        return gamma * infected - theta * recovered - \
+               death_rate_young(young, old) * (young / population) * recovered - \
+               death_rate_old * (old / population) * recovered
+
+
+    def n_prime(infected, young, old, population):
+        return birth_rate * young - death_rate_young(young, old) * young - \
+               death_rate_old * old - death_infection_young * (young / population) * infected - \
+               death_infection_old * (old / population) * infected
+
+
+    def y_prime(infected, young, old, population):
+        return birth_rate * young - death_rate_young(young, old) * young - \
+               death_infection_young * (young / population) * infected - \
+               aging_rate * young
+
+
+    def o_prime(infected, young, old, population):
+        return aging_rate * young - death_rate_old * old - \
+               death_infection_old * (old / population) * infected
+
+
+    def sir_model(t, y):
+        # Assigning SIR based on a vector
+        susceptible = y[0]
+        infected = y[1]
+        recovered = y[2]
+        population = y[3]
+        young = y[4]
+        old = y[5]
+
+        # ODEs for SIR model
+        dSdt = s_prime(susceptible, infected, recovered, young, old, population)
+        dIdt = i_prime(susceptible, infected, young, old, population)
+        dRdt = r_prime(infected, recovered, young, old, population)
+        dNdt = n_prime(infected, young, old, population)
+        dYdt = y_prime(infected, young, old, population)
+        dOdt = o_prime(infected, young, old, population)
+
+        return [dSdt, dIdt, dRdt, dNdt, dYdt, dOdt]
+
+
+    # Stops the simulation when the sum of the change in percentage of SIR groups is close to 0
+    def event(t, y):
+        # 0.001 is added to the compartments to avoid a ZeroDivisionError
+        dSNdt_SN = (s_prime(y[0], y[1], y[2], y[4], y[5], y[3]) * y[3] -
+                    n_prime(y[1], y[4], y[5], y[3]) * y[0]) / ((y[0] + 0.001) * y[3])
+        dINdt_IN = (i_prime(y[0], y[1], y[4], y[5], y[3]) * y[3] -
+                    n_prime(y[1], y[4], y[5], y[3]) * y[1]) / ((y[1] + 0.001) * y[3])
+        dRNdt_RN = (r_prime(y[1], y[2], y[4], y[5], y[3]) * y[3] -
+                    n_prime(y[1], y[4], y[5], y[3]) * y[2]) / ((y[2] + 0.001) * y[3])
+        return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.01
+
     event.direction = -1
     event.terminal = True
 
@@ -263,32 +264,19 @@ def the_magic(filename):
     book.save("SIR_spreadsheet.xls")
 
 
-def save_data():
-    os.makedirs("Figure1Plots", exist_ok=True)
-    os.makedirs("Figure2Plots", exist_ok=True)
-    os.makedirs("Figure3Plots", exist_ok=True)
-    while iteration < iteration_max:
-        file_name = 'BR' + str(birth_rate) + ' AR' + str(aging_rate) + ' DRO' + str(death_rate_old) + \
-                    ' DIY' + str(death_infection_young) + ' DIO' + str(death_infection_old) + ' YTO' + \
-                    str(young_to_old) + ' P' + str(population) + save_type
-        # Defines current parameter iteration
-        the_magic(file_name)
-        iterate()
-
-
-def iterate():
-    global birth_rate
-    global aging_rate
-    global death_rate_old
-    global death_infection_young
-    global death_infection_old
-    global iteration
+os.makedirs("Figure1Plots", exist_ok=True)
+os.makedirs("Figure2Plots", exist_ok=True)
+os.makedirs("Figure3Plots", exist_ok=True)
+while iteration < iteration_max:
+    file_name = 'BR' + str(birth_rate) + ' AR' + str(aging_rate) + ' DRO' + str(death_rate_old) + \
+                ' DIY' + str(death_infection_young) + ' DIO' + str(death_infection_old) + ' YTO' + \
+                str(young_to_old) + ' P' + str(population) + save_type
+    # Defines current parameter iteration
+    the_magic(file_name)
     birth_rate += birth_rate_step
     aging_rate += aging_rate_step
     death_rate_old += death_rate_old_step
     death_infection_young += death_infection_young_step
     death_infection_old += death_infection_old_step
     iteration += iteration_step
-
-
-save_data()
+    population += population_step
