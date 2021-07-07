@@ -23,10 +23,12 @@ death_rate_old_step = float(input_lines[12])
 death_infection_young_step = float(input_lines[13])
 death_infection_old_step = float(input_lines[14])
 young_to_old_step = float(input_lines[15])
-population_max = int(input_lines[16])
-population_step = float(input_lines[17])
+iteration_max = int(input_lines[16])
+iteration_step = float(input_lines[17])
+iteration = 0
 initial_population = 1
 population = initial_population
+save_type = '.pdf'
 
 """ This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
 If this number is too low to start an epidemic, but an epidemic is possible, the highest possible I that will generate
@@ -265,10 +267,10 @@ def save_data():
     os.makedirs("Figure1Plots", exist_ok=True)
     os.makedirs("Figure2Plots", exist_ok=True)
     os.makedirs("Figure3Plots", exist_ok=True)
-    while population < population_max:
+    while iteration < iteration_max:
         file_name = 'BR' + str(birth_rate) + ' AR' + str(aging_rate) + ' DRO' + str(death_rate_old) + \
                     ' DIY' + str(death_infection_young) + ' DIO' + str(death_infection_old) + ' YTO' + \
-                    str(young_to_old) + ' P' + str(population) + '.pdf'
+                    str(young_to_old) + ' P' + str(population) + save_type
         # Defines current parameter iteration
         the_magic(file_name)
         iterate()
@@ -280,13 +282,13 @@ def iterate():
     global death_rate_old
     global death_infection_young
     global death_infection_old
-    global population
+    global iteration
     birth_rate += birth_rate_step
     aging_rate += aging_rate_step
     death_rate_old += death_rate_old_step
     death_infection_young += death_infection_young_step
     death_infection_old += death_infection_old_step
-    population += population_step
+    iteration += iteration_step
 
 
 save_data()
