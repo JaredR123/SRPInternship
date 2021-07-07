@@ -5,7 +5,7 @@ import xlwt
 import os
 
 # Read text file for input
-input_file = open("input_new.txt", "r")
+input_file = open("input.txt", "r")
 input_lines = input_file.readlines()
 beta = float(input_lines[0])  # Rate of infection
 gamma = float(input_lines[1])  # Rate of recovery
@@ -25,14 +25,14 @@ death_infection_old_step = float(input_lines[14])
 young_to_old_step = float(input_lines[15])
 population_max = int(input_lines[16])
 population_step = float(input_lines[17])
-initial_population = 0
+initial_population = 1
 population = initial_population
 
 """ This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
 If this number is too low to start an epidemic, but an epidemic is possible, the highest possible I that will generate
 an epidemic will be used. 0.001 was determined after testing with multiple graphs to ensure that no trends are missed,
 while at the same time not leaving too long where the graph is just 3 straight lines."""
-if model_method == "a":
+if model_method == "a\n":
     min_infected = 0.001 * initial_population
     if min_infected >= (initial_population * (beta / gamma - 1)) / (beta / gamma):  # Maximum I for an epidemic
         min_infected = (initial_population * (beta / gamma - 1)) / (beta / gamma)
@@ -53,6 +53,7 @@ if beta / (gamma + death_infection + birth_rate) < 1 or \
         ((r * sigma) / (death_infection * (sigma - 1))) * (1 + (gamma / (theta + death_rate))) < 1:
     print("Disease or population dies out, so no endemic equilibrium; " +
           "take results with a grain of salt")"""
+
 
 # Death rate for young individuals
 def death_rate_young(young, old):
@@ -128,9 +129,12 @@ def event(t, y):
                 n_prime(y[1], y[4], y[5], y[3]) * y[2]) / ((y[2] + 0.001) * y[3])
     return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.01
 
+
 def the_magic(filename):
     event.direction = -1
     event.terminal = True
+
+    print(sirn_vector)
 
     # Evaluate system of ODEs and get the final t at equilibrium
     solved = solve_ivp(sir_model, (0, 100), sirn_vector, events=event, dense_output=True)
@@ -177,7 +181,7 @@ def the_magic(filename):
     ax.set_ylim([0, max(n_data)])
 
     # Save figure 1
-    plt.savefig(filename)
+    plt.savefig("Figure1Plots/" + filename)
 
     # Getting the SIR percentage values
     s_percent = s_data / n_data
@@ -202,8 +206,7 @@ def the_magic(filename):
     percent_sir.set_ylim([0, 1])
 
     # Save figure 2
-    plt.savefig(filename)
-
+    plt.savefig("Figure2Plots/" + filename)
 
     # Getting the age percentage values
     y_percent = y_data / n_data
@@ -226,7 +229,7 @@ def the_magic(filename):
     percent_age.set_ylim([0, 1])
 
     # Save figure 3
-    plt.savefig(filename)
+    plt.savefig("Figure3Plots/" + filename)
 
     # Display the plot
     plt.show()
@@ -257,23 +260,33 @@ def the_magic(filename):
     # Saves the workbook
     book.save("SIR_spreadsheet.xls")
 
+
 def save_data():
-    os.makedirs("Figure1Plots")
-    os.makedirs("Figure2Plots")
-    os.makedirs("Figure3Plots")
-    while (population < population_max):
-        file_name = 'BR' + str(birth_rate) + ' AR' + str(aging_rate) + ' DRO' + str(death_rate_old) + ' DIY' + str(death_infection_young) + ' DIO' + str(death_infection_old) + ' YTO' + str(young_to_old) + ' P' + str(population) + '.pdf'
+    os.makedirs("Figure1Plots", exist_ok=True)
+    os.makedirs("Figure2Plots", exist_ok=True)
+    os.makedirs("Figure3Plots", exist_ok=True)
+    while population < population_max:
+        file_name = 'BR' + str(birth_rate) + ' AR' + str(aging_rate) + ' DRO' + str(death_rate_old) + \
+                    ' DIY' + str(death_infection_young) + ' DIO' + str(death_infection_old) + ' YTO' + \
+                    str(young_to_old) + ' P' + str(population) + '.pdf'
         # Defines current parameter iteration
         the_magic(file_name)
-        iterate(birth_rate, aging_rate, death_rate_old, death_infection_young, death_infection_old, young_to_old, population)
+        iterate()
 
-def iterate(br, ar, dro, diy, dio, yto, p):
-    br += birth_rate_step
-    ar += aging_rate_step
-    dro += death_rate_old_step
-    diy += death_infection_young_step
-    dio += death_infection_old_step
-    yto += young_to_old_step
-    p += population_step
+
+def iterate():
+    global birth_rate
+    global aging_rate
+    global death_rate_old
+    global death_infection_young
+    global death_infection_old
+    global population
+    birth_rate += birth_rate_step
+    aging_rate += aging_rate_step
+    death_rate_old += death_rate_old_step
+    death_infection_young += death_infection_young_step
+    death_infection_old += death_infection_old_step
+    population += population_step
+
 
 save_data()
