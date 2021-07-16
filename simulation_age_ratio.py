@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xlwt
 from scipy.integrate import solve_ivp
-from scipy.optimize import root_scalar
 from scipy.misc import derivative
+from scipy.optimize import root_scalar
 
 # Read text file for input
-input_file = open("/Users/Edward Rong/Downloads/School/input1.txt", "r")
+input_file = open("input.txt", "r")
 input_lines = input_file.readlines()
 beta = float(input_lines[0])  # Rate of infection
 gamma = float(input_lines[1])  # Rate of recovery
@@ -74,6 +74,11 @@ def o_prime(infected, young, old, population):
            death_infection_old * (old / population) * infected
 
 
+def age_ratio_prime(young_fraction):
+    return young_fraction * (death_rate_young(young_fraction) - birth_rate - death_rate_old) - \
+           death_rate_young(young_fraction) + birth_rate + death_rate_old - aging_rate
+
+
 def sir_model(t, y):
     # Assigning SIR based on a vector
     susceptible = y[0]
@@ -110,19 +115,14 @@ event.direction = -1
 event.terminal = True
 
 
-def age_ratio_solver(young_fraction):
-    return young_fraction * (death_rate_young(young_fraction) - birth_rate - death_rate_old) - \
-           death_rate_young(young_fraction) + birth_rate + death_rate_old - aging_rate
-
-
 def the_magic(filename):
     # Solves for the young to old ratio before the pathogen
     young_fraction_list = []
     growth_rate_list = []
     for num in range(1, 11):
-        root = root_scalar(age_ratio_solver, method="secant",
+        root = root_scalar(age_ratio_prime, method="secant",
                            x0=num * 0.1, x1=num * 0.1 + 0.5).root
-        if root not in young_fraction_list:
+        if root not in young_fraction_list and derivative(age_ratio_prime, root) < 0:
             young_fraction_list.append(root)
             growth_rate_list.append(birth_rate - aging_rate - death_rate_young(root))
 
@@ -254,23 +254,6 @@ def the_magic(filename):
     # Display the plot
     plt.show()
 
-    # Defining the rate of young/old
-    def yo_prime(old):
-        return ((old * (birth_rate - aging_rate - death_rate_young((final_N - old) / old)) * (final_N - old)) -
-                ((final_N - old) * (aging_rate * (final_N - old) - death_rate_old))) / old ** 2
-
-    def stab_analysis():
-        # performs stability analysis on the young to old ratio
-
-        root = root_scalar(yo_prime, method="secant", x0=1, x1=2).root
-        check = derivative(yo_prime, root,)
-        if check > 0:
-            return "Unstable"
-        if check < 0:
-            return "Stable"
-        else:
-            return "Inconclusive"
-
     # Initialize an excel workbook
     book = xlwt.Workbook(encoding="utf-8")
 
@@ -310,8 +293,6 @@ def the_magic(filename):
             sheet1.write(10, 1, "Type 2: GR Decrease Due to Collaboration Loss")
         else:
             sheet1.write(10, 1, "Type 3: Massive population loss")
-    sheet1.write(12, 0, "Stable?")
-    sheet1.write(12, 1, stab_analysis())
 
     # Saves the workbook
     book.save("SIR_spreadsheet.xls")
