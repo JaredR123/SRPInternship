@@ -179,20 +179,11 @@ def the_magic(filename):
     if min_infected >= (initial_population * (beta / gamma - 1)) / (beta / gamma):  # Maximum I for an epidemic
         min_infected = (initial_population * (beta / gamma - 1)) / (beta / gamma)
     # Starting vector for SIR
-    sirn_vector = [(initial_population - min_infected) * 0.5, (initial_population - min_infected) * 0.5,
-                   min_infected * 0.5, min_infected * 0.5, 0, 0,
-                   initial_population, young_fraction * initial_population,
+    sirn_vector = [(initial_population - min_infected) * young_fraction,
+                   (initial_population - min_infected) * (1 - young_fraction),
+                   min_infected * young_fraction, min_infected * (1 - young_fraction),
+                   0, 0, initial_population, young_fraction * initial_population,
                    (1 - young_fraction) * initial_population]
-
-    # Check for possibility of endemic equilibrium
-    # From Mena-Lorcat, J., & Hethcote, H. (1992). Dynamic models of infectious diseases as regulators of population
-    # sizes. Journal of Mathematical Biology, 30(7).
-    """r = birth_rate - death_rate
-    sigma = beta / (gamma + death_infection + death_rate)
-    if beta / (gamma + death_infection + birth_rate) < 1 or \
-            ((r * sigma) / (death_infection * (sigma - 1))) * (1 + (gamma / (theta + death_rate))) < 1:
-        print("Disease or population dies out, so no endemic equilibrium; " +
-              "take results with a grain of salt")"""
 
     print(sirn_vector)
 
@@ -223,9 +214,6 @@ def the_magic(filename):
     final_IO = io_data[-1]
     final_RY = ry_data[-1]
     final_RO = ro_data[-1]
-    final_S = s_data[-1]
-    final_I = i_data[-1]
-    final_R = r_data[-1]
     final_N = n_data[-1]
     final_Y = y_data[-1]
     final_O = o_data[-1]
