@@ -131,9 +131,9 @@ def sir_model(t, y):
     dIOdt = io_prime(o_susceptible, y_infected, o_infected, population)
     dRYdt = ry_prime(y_infected, y_recovered, young, population)
     dROdt = ro_prime(o_infected, y_recovered, o_recovered)
-    dNdt = n_prime(y_infected, o_infected, young, old, population)
-    dYdt = y_prime(y_infected, young, population)
-    dOdt = o_prime(o_infected, young, old)
+    dNdt = dSYdt + dIYdt + dRYdt + dSOdt + dIOdt + dROdt  # n_prime(y_infected, o_infected, young, old, population)
+    dYdt = dSYdt + dIYdt + dRYdt  # y_prime(y_infected, young, population)
+    dOdt = dSOdt + dIOdt + dROdt  # o_prime(o_infected, young, old)
 
     return [dSYdt, dSOdt, dIYdt, dIOdt, dRYdt, dROdt, dNdt, dYdt, dOdt]
 
@@ -143,13 +143,13 @@ def event(t, y):
     # 0.001 is added to the compartments to avoid a ZeroDivisionError
     dSNdt_SN = (s_prime(y[0], y[1], y[2] + y[3], y[4] + y[5], y[7], y[6]) * y[6] -
                 n_prime(y[2], y[3], y[7], y[8], y[6]) * (y[0] + y[1])) / \
-               ((y[0] + 0.001) * y[6])
+               ((y[0] + y[1] + 0.001) * y[6])
     dINdt_IN = (i_prime(y[0] + y[1], y[2], y[3], y[7], y[6]) * y[6] -
                 n_prime(y[2], y[3], y[7], y[8], y[6]) * (y[2] + y[3])) / \
-               ((y[1] + 0.001) * y[6])
+               ((y[2] + y[3] + 0.001) * y[6])
     dRNdt_RN = (r_prime(y[2] + y[3], y[4], y[5], y[7], y[6]) * y[6] -
                 n_prime(y[2], y[3], y[7], y[8], y[6]) * (y[4] + y[5])) / \
-               ((y[2] + 0.001) * y[6])
+               ((y[4] + y[5] + 0.001) * y[6])
     return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.01
 
 
