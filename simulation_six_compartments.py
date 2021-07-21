@@ -171,13 +171,8 @@ def the_magic(filename):
     # Optimizes the young fraction by choosing the fraction with the greatest growth rate
     young_fraction = young_fraction_list[growth_rate_list.index(max(growth_rate_list))]
 
-    """ This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
-    If this number is too low to start an epidemic, but an epidemic is possible, the highest possible I that will
-    generate an epidemic will be used. 0.001 was determined after testing with multiple graphs to ensure that no trends
-    are missed, while at the same time not leaving too long where the graph is just 3 straight lines."""
+    # This gives a rough minimum of infected as to not go many generations without significant changes in SIR groups.
     min_infected = 0.001 * initial_population
-    if min_infected >= (initial_population * (beta / gamma - 1)) / (beta / gamma):  # Maximum I for an epidemic
-        min_infected = (initial_population * (beta / gamma - 1)) / (beta / gamma)
     # Starting vector for SIR
     sirn_vector = [(initial_population - min_infected) * young_fraction,
                    (initial_population - min_infected) * (1 - young_fraction),
