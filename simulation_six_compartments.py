@@ -33,7 +33,7 @@ save_type = '.jpg'
 
 # Death rate for young individuals
 def death_rate_young(young_fraction):
-    return 0.2
+    return 0.1
 
 
 # Defines the ODEs for the SIR and age groups (Add young/old derivatives for each compartment)
