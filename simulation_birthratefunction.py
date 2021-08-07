@@ -35,8 +35,8 @@ save_type = '.jpg'
 
 # Proportion of young population that has enough "resources" to give birth
 def fertile_proportion(young_fraction):
-    return (1 - young_fraction ** (1000 ** (0.5 - a))) * \
-           young_fraction ** (1000 ** (b - 0.5))
+    return (1 - young_fraction ** (100 ** (0.5 - a))) * \
+           young_fraction ** (100 ** (b - 0.5))
 
 
 # Defines the ODEs for the SIR and age groups (Add young/old derivatives for each compartment)
@@ -149,7 +149,7 @@ def event(t, y):
     dRNdt_RN = (r_prime(y[2] + y[3], y[4], y[5], y[7], y[6]) * y[6] -
                 n_prime(y[2], y[3], y[7], y[8], y[6]) * (y[4] + y[5])) / \
                ((y[4] + y[5] + 0.001) * y[6])
-    return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.001
+    return abs(dSNdt_SN) + abs(dINdt_IN) + abs(dRNdt_RN) - 0.005
 
 
 event.direction = -1
@@ -163,7 +163,7 @@ def the_magic(filename):
     for num in range(1, 11):
         root = root_scalar(age_ratio_prime, method="secant",
                            x0=num * 0.1, x1=num * 0.1 + 0.5).root
-        if not np.iscomplex(root) and derivative(age_ratio_prime, root, dx=1e-6) < 0:
+        if not isinstance(root, complex) and derivative(age_ratio_prime, root, dx=1e-6) < 0:
             young_fraction_list.append(root)
             growth_rate_list.append(birth_rate * fertile_proportion(root) - aging_rate)
 
